@@ -1,0 +1,17 @@
+curl -s "http://localhost:3000/api/stations?bbox=23.70,37.95,23.75,38.00" | powershell -NoProfile -Command "$raw=[Console]::In.ReadToEnd(); $raw | ConvertFrom-Json | ConvertTo-Json -Depth 50"
+curl -s "http://localhost:3000/api/stations?" | powershell -NoProfile -Command "$raw=[Console]::In.ReadToEnd(); $raw | ConvertFrom-Json | ConvertTo-Json -Depth 50"
+curl -s "http://localhost:3000/api/stations/cmivu35sr001zuub0iosuy52v" | powershell -NoProfile -Command "$raw=[Console]::In.ReadToEnd(); $raw | ConvertFrom-Json | ConvertTo-Json -Depth 50"
+curl -s "http://localhost:3000/api/points?" | powershell -NoProfile -Command "$raw=[Console]::In.ReadToEnd(); $raw | ConvertFrom-Json | ConvertTo-Json -Depth 50"
+curl -s "http://localhost:3000/api/points/cmk4br9ze002auu0kkf7w1kzq" | powershell -NoProfile -Command "$raw=[Console]::In.ReadToEnd(); $raw | ConvertFrom-Json | ConvertTo-Json -Depth 50"
+
+curl -i \
+  -X POST "http://localhost:3000/api/admin/resetpoints" \
+  -H "X-ADMIN-TOKEN: dev-admin" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+
+  curl -i http://localhost:3000/api/admin/healthcheck
+  
+  curl -i "http://localhost:3000/api/points?status=available"
+  
+4425067

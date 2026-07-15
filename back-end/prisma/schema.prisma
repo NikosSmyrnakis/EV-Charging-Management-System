@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum OutletStatus {
+  available
+  charging
+  reserved
+  malfunction
+  offline
+}
+
+enum LocationConnectorTypeName {
+  CCS1
+  CCS2
+  CHADEMO
+  CARAVAN_MAINS_SOCKET
+  J_1772
+  THREE_PHASE_EU
+  TYPE_2
+  TYPE_3
+  TYPE_3A
+  WALL_EURO
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+
+  // display-only (masked)
+  paymentBrand String?
+  paymentLast4 String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions     ChargingSession[]
+  reservations Outlet[] @relation("OutletReservation")
+}
+
+enum ChargingSessionStatus {
+  ongoing
+  cancelled
+  completed
+}
+
+model ChargingSession {
+  id        String   @id @default(cuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  outletId  Int
+  outlet    Outlet   @relation(fields: [outletId], references: [id], onDelete: Cascade)
+
+  // Reservation created time (and later "charging started" time if you want)
+  startTime DateTime @default(now())
+
+  // Becomes non-null when cancelled or completed
+  endTime   DateTime?
+
+  // Reservation expiry time (useful for UI + debugging)
+  reservationEndTime DateTime?
+
+  status    ChargingSessionStatus @default(ongoing)
+
+  startSoc  Int?
+  endSoc    Int?
+
+  // allow reservation-time creation
+  totalKwh  Float    @default(0)
+  amount    Float    @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, startTime])
+  @@index([outletId, startTime])
+  @@index([status])
+}
+
+model PointStatusChange {
+  id        String       @id @default(cuid())
+  pointId   Int
+  point     Outlet       @relation(fields: [pointId], references: [id], onDelete: Cascade)
+
+  timeref   DateTime     @default(now())
+  old_state OutletStatus?
+  new_state OutletStatus?
+
+  @@index([pointId, timeref])
+}
+
+model Location {
+  id                      Int    @id
+  access                  Int
+  address                 String?
+  available_station_count Int?
+  coming_soon             Boolean
+  icon                    String
+  icon_type               String
+  in_use_station_count    Int?
+  is_fast_charger         Boolean
+  latitude                Float
+  longitude               Float
+  map_card_logo_url       String?
+  name                    String
+  score                   Float?
+  station_count           Int
+  thumbnail_url           String?
+  under_repair            Boolean
+  url                     String
+
+  stations                Station[]
+  connectorTypes          LocationConnectorType[]
+
+  @@index([latitude, longitude])
+}
+
+model LocationConnectorType {
+  locationId Int
+  type       LocationConnectorTypeName
+
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@id([locationId, type])
+  @@index([type])
+}
+
+model Station {
+  id         Int   @id
+  network_id Int?
+
+  locationId Int
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  outlets    Outlet[]
+
+  @@index([locationId])
+  @@index([network_id])
+}
+
+model Outlet {
+  id                 Int          @id
+
+  connector          Int
+  kilowatts          Float?
+  power              Int          @default(0)
+
+  status             OutletStatus? @default(available)
+  reservationendtime DateTime?
+  kwhprice           Float        @default(0.30)
+  
+  reservedByUserId   String?
+  reservedByUser     User?        @relation("OutletReservation", fields: [reservedByUserId], references: [id], onDelete: SetNull)
+
+  stationId          Int
+  station            Station      @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  sessions           ChargingSession[]
+  statusChanges      PointStatusChange[]
+
+  @@index([stationId])
+}

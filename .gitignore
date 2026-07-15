@@ -1,0 +1,3 @@
+/back-end/prisma/dev.db
+/back-end/prisma/migrations
+*.db
