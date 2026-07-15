@@ -8,7 +8,7 @@ The platform is designed for a charging-network provider and supports both EV dr
 
 > **Project status:** Requirements and system-design phase. This repository currently contains the Software Requirements Specification, UML models, activity diagrams, and user-interface wireframes.
 
-## Core Features
+## Core Features 
 
 ### For EV Drivers
 
