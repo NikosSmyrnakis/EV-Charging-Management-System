@@ -1,4 +1,4 @@
-# EV Charge Manager 
+# EV Charge Manager  
 
 > A software engineering specification and system design for a unified electric-vehicle charging platform.
 
